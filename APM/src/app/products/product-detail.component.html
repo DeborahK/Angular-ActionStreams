@@ -80,5 +80,6 @@
 </div>
 
 <div class="alert alert-danger"
-     *ngIf="errorMessage">{{errorMessage}}
+     *ngIf="errorMessage$ | async as errorMessage">
+  {{ errorMessage }}
 </div>

@@ -1,9 +1,10 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
-import { EMPTY, combineLatest } from 'rxjs';
+import { EMPTY, combineLatest, Subject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { ProductService } from './product.service';
+import { Product } from './product';
 
 @Component({
   templateUrl: './product-list.component.html',
@@ -13,9 +14,12 @@ import { ProductService } from './product.service';
 export class ProductListComponent {
   pageTitle = 'Product List';
   showImage = false;
-  errorMessage = '';
   pageSizes = this.productService.pageSizes;
   selectedButton = 2;
+
+  // Error messages
+  private errorMessageSubject = new Subject<string>();
+  errorMessage$ = this.errorMessageSubject.asObservable();
 
   // Current filter/paging criteria
   filter$ = this.productService.filterAction$;
@@ -42,10 +46,31 @@ export class ProductListComponent {
   // Products adjusted as per the criteria
   products$ = this.productService.products$
     .pipe(
-      catchError(error => {
-        this.errorMessage = error;
+      catchError(err => {
+        this.errorMessageSubject.next(err);
         return EMPTY;
       }));
+
+  // Combine all of the streams for the view
+  vm$ = combineLatest([
+    this.filter$,
+    this.pageSize$,
+    this.currentPage$,
+    this.totalResults$,
+    this.totalPages$,
+    this.disableNext$,
+    this.disablePrevious$,
+    this.products$
+  ]).pipe(
+    map(([filter, pageSize, currentPage,
+      totalResults, totalPages,
+      disableNext, disablePrevious, products]:
+      [string, number, number, number, number, boolean, boolean, Product[]]) => ({
+        filter, pageSize, currentPage,
+        totalResults, totalPages,
+        disableNext, disablePrevious, products
+      }))
+  );
 
   constructor(private productService: ProductService) { }
 

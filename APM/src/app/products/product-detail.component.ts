@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { EMPTY } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import { ProductService } from './product.service';
@@ -13,12 +13,14 @@ import { Product } from './product';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductDetailComponent implements OnInit {
-  errorMessage = '';
+  // Error messages
+  private errorMessageSubject = new Subject<string>();
+  errorMessage$ = this.errorMessageSubject.asObservable();
 
   product$ = this.productService.product$
     .pipe(
-      catchError(error => {
-        this.errorMessage = error;
+      catchError(err => {
+        this.errorMessageSubject.next(err);
         return EMPTY;
       }));
 

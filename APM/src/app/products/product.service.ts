@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { combineLatest, BehaviorSubject, throwError } from 'rxjs';
+import { combineLatest, BehaviorSubject, throwError, EMPTY } from 'rxjs';
 import { catchError, tap, map, switchMap, filter, shareReplay, scan } from 'rxjs/operators';
 
 import { Product } from './product';
@@ -44,7 +44,7 @@ export class ProductService {
   // Total results
   totalResults$ = this.filteredProducts$
     .pipe(
-      map(products => products.length),
+      map(products => products.length)
     );
 
   // Total pages

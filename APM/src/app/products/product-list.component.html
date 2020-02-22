@@ -3,20 +3,21 @@
     {{pageTitle}}
   </div>
 
-  <div class="card-body">
+  <div class="card-body"
+       *ngIf="vm$ | async as vm">
     <div class="row">
       <div class="col-md-3">Filter by:
         <input type="text"
-               [ngModel]="(filter$ | async)"
+               [ngModel]="vm.filter"
                (ngModelChange)="doFilter($event)" />
       </div>
-      <div class="col-md-3">Page: {{ (currentPage$ | async)}} of {{totalPages$ | async}}
+      <div class="col-md-3">Page: {{ vm.currentPage}} of {{vm.totalPages}}
         <button class="btn btn-light"
                 (click)="setPage(-1)"
-                [disabled]="disablePrevious$ | async">Prev</button>
+                [disabled]="vm.disablePrevious">Prev</button>
         <button class="btn btn-light"
                 (click)="setPage(1)"
-                [disabled]="disableNext$ | async">Next</button>
+                [disabled]="vm.disableNext">Next</button>
       </div>
       <div class="col-md-3">Show Results:
         <button class="btn btn-light"
@@ -26,12 +27,12 @@
           {{ pageSize }}
         </button>
       </div>
-      <div class="col-md-3">Total Results: {{ totalResults$ | async }}</div>
+      <div class="col-md-3">Total Results: {{ vm.totalResults }}</div>
     </div>
 
     <div class="table-responsive">
       <table class="table mb-0"
-             *ngIf="products$ | async as products">
+             *ngIf="vm.products">
         <thead>
           <tr>
             <th>
@@ -49,7 +50,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let product of products">
+          <tr *ngFor="let product of vm.products">
             <td>
               <img *ngIf="showImage && product.imageUrl"
                    [src]="product.imageUrl"
@@ -82,7 +83,7 @@
   </div>
 </div>
 
-<div *ngIf="errorMessage"
-     class="alert alert-danger">
-  Error: {{ errorMessage }}
+<div class="alert alert-danger"
+     *ngIf="errorMessage$ | async as errorMessage">
+  {{ errorMessage }}
 </div>

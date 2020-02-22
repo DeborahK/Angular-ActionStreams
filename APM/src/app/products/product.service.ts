@@ -2,10 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { combineLatest, BehaviorSubject, throwError } from 'rxjs';
-import { catchError, tap, map, switchMap, filter, shareReplay } from 'rxjs/operators';
+import { catchError, tap, map, switchMap, filter, shareReplay, scan } from 'rxjs/operators';
 
 import { Product } from './product';
-import { Criteria } from './criteria';
 
 @Injectable({
   providedIn: 'root'
@@ -14,17 +13,14 @@ export class ProductService {
   private productsUrl = 'api/products';
   pageSizes = [2, 3, 5];
 
-  // Handle criteria change action
-  criteriaSubject = new BehaviorSubject<Criteria>({
-    listFilter: '',
-    pageSize: this.pageSizes[0],
-    pageNumber: 1
-  });
-  criteriaAction$ = this.criteriaSubject.asObservable();
+  // Filter/paging criteria
+  filterSubject = new BehaviorSubject<string>('');
+  filterAction$ = this.filterSubject.asObservable();
 
-  // Handle page increment/decrement action
-  pageIncrementSubject = new BehaviorSubject<number>(0);
-  pageIncrementAction$ = this.pageIncrementSubject.asObservable();
+  pageSizeSubject = new BehaviorSubject<number>(this.pageSizes[0]);
+  pageSizeAction$ = this.pageSizeSubject.asObservable();
+
+  pageNumberSubject = new BehaviorSubject<number>(1);
 
   // List of products
   allProducts$ = this.http.get<Product[]>(this.productsUrl)
@@ -38,11 +34,11 @@ export class ProductService {
   // This is a separate stream to get the total number of products to display
   filteredProducts$ = combineLatest([
     this.allProducts$,
-    this.criteriaAction$])
+    this.filterAction$])
     .pipe(
       // Perform the filtering
-      map(([products, criteria]) =>
-        this.performFilter(products, criteria.listFilter))
+      map(([products, filter]) =>
+        this.performFilter(products, filter))
     );
 
   // Total results
@@ -54,42 +50,33 @@ export class ProductService {
   // Total pages
   totalPages$ = combineLatest([
     this.totalResults$,
-    this.criteriaAction$
+    this.pageSizeAction$
   ])
     .pipe(
-      map(([total, criteria]) =>
-        Math.ceil(total / criteria.pageSize))
+      map(([total, pageSize]) =>
+        Math.ceil(total / pageSize))
     )
 
-  currentPage$ = combineLatest([
-    this.criteriaAction$,
-    this.totalPages$,
-    this.pageIncrementAction$
-  ])
+  // Current page
+  currentPage$ = this.pageNumberSubject
     .pipe(
-      tap(console.log),
-      map(([criteria, maxPageNumber, pageIncrement]) => {
-        // Add the amount to the current page number
-        let pageNumber = criteria.pageNumber + pageIncrement;
-        // Adjust for first and last page
-        if (pageNumber <= 0) pageNumber = 1;
-        if (pageNumber > maxPageNumber) pageNumber = maxPageNumber;
-        return pageNumber;
-      })
+      scan((acc, one) => acc + one)
     );
 
   products$ = combineLatest([
     this.filteredProducts$,
-    this.criteriaAction$])
+    this.currentPage$,
+    this.pageSizeAction$
+  ])
     .pipe(
       // Perform the filtering
-      map(([filteredProducts, criteria]) =>
-        filteredProducts.slice((criteria.pageNumber - 1) * criteria.pageSize,
-          criteria.pageNumber * criteria.pageSize)
+      map(([filteredProducts, pageNumber, pageSize]) =>
+        filteredProducts.slice((pageNumber - 1) * pageSize,
+          pageNumber * pageSize)
       )
     );
 
-  // If the paging can be done on the server, it would looke more like this
+  // If the paging can be done on the server, it would look more like this
   // products$ = this.criteriaAction$
   //   .pipe(
   //     switchMap(criteria =>
@@ -122,11 +109,16 @@ export class ProductService {
 
   constructor(private http: HttpClient) { }
 
-  // Criteria was changed
-  changeCriteria(criteria: Criteria): void {
-    const newCriteria = { ...this.criteriaSubject.value, ...criteria }
-    console.log(newCriteria);
-    this.criteriaSubject.next(newCriteria);
+  // Filter was changed
+  changeFilter(filter: string): void {
+    this.filterSubject.next(filter);
+  }
+
+  // Filter was changed
+  changePageSize(size: number): void {
+    this.pageSizeSubject.next(size);
+    // When the page size changes, reset the page number to 0.
+    //@@@
   }
 
   // Selected product was changed
@@ -136,7 +128,7 @@ export class ProductService {
 
   // Increment/decrement the current page
   incrementPage(amount: number) {
-    this.pageIncrementSubject.next(amount);
+    this.pageNumberSubject.next(amount);
   }
 
   performFilter(products: Product[], filterBy: string) {

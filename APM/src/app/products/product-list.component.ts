@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
-import { EMPTY } from 'rxjs';
+import { EMPTY, combineLatest } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { ProductService } from './product.service';
@@ -17,14 +17,27 @@ export class ProductListComponent {
   pageSizes = this.productService.pageSizes;
   selectedButton = 2;
 
-  // Current criteria
-  criteria$ = this.productService.criteriaAction$;
+  // Current filter/paging criteria
+  filter$ = this.productService.filterAction$;
+  pageSize$ = this.productService.pageSizeAction$;
+  currentPage$ = this.productService.currentPage$;
 
-  // Total results
+  // Totals
   totalResults$ = this.productService.totalResults$;
-
-  // Total pages
   totalPages$ = this.productService.totalPages$;
+
+  // Whether to disable the next/prev
+  disablePrevious$ = this.currentPage$
+    .pipe(
+      map(pageNumber => pageNumber === 1)
+    )
+  // Whether to disable the next/prev
+  disableNext$ = combineLatest([
+    this.currentPage$,
+    this.totalPages$
+  ]).pipe(
+    map(([currentPage, totalPages]) => currentPage === totalPages)
+  )
 
   // Products adjusted as per the criteria
   products$ = this.productService.products$
@@ -37,7 +50,7 @@ export class ProductListComponent {
   constructor(private productService: ProductService) { }
 
   doFilter(filter: string): void {
-    this.productService.changeCriteria({ listFilter: filter });
+    this.productService.changeFilter(filter);
   }
 
   setPage(amount: number): void {
@@ -46,7 +59,7 @@ export class ProductListComponent {
 
   setPageSize(pageSize: number): void {
     this.selectedButton = pageSize;
-    this.productService.changeCriteria({ pageSize });
+    this.productService.changePageSize(pageSize);
   }
 
   toggleImage(): void {

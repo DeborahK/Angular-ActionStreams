@@ -7,14 +7,16 @@
     <div class="row">
       <div class="col-md-3">Filter by:
         <input type="text"
-               [ngModel]="(criteria$ | async).listFilter"
+               [ngModel]="(filter$ | async)"
                (ngModelChange)="doFilter($event)" />
       </div>
-      <div class="col-md-3">Page: {{ (criteria$ | async).pageNumber}} of {{totalPages$ | async}}
+      <div class="col-md-3">Page: {{ (currentPage$ | async)}} of {{totalPages$ | async}}
         <button class="btn btn-light"
-                (click)="setPage(-1)">Prev</button>
+                (click)="setPage(-1)"
+                [disabled]="disablePrevious$ | async">Prev</button>
         <button class="btn btn-light"
-                (click)="setPage(1)">Next</button>
+                (click)="setPage(1)"
+                [disabled]="disableNext$ | async">Next</button>
       </div>
       <div class="col-md-3">Show Results:
         <button class="btn btn-light"

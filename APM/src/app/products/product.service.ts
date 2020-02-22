@@ -58,9 +58,17 @@ export class ProductService {
     )
 
   // Current page
+  // Emitting 0 reinitializes the page count
   currentPage$ = this.pageNumberSubject
     .pipe(
-      scan((acc, one) => acc + one)
+      scan((acc, one) => {
+        if (one === 0) {
+          return 1;
+        }
+        else {
+          return acc + one;
+        }
+      })
     );
 
   products$ = combineLatest([
@@ -77,14 +85,18 @@ export class ProductService {
     );
 
   // If the paging can be done on the server, it would look more like this
-  // products$ = this.criteriaAction$
+  // products$ = combineLatest([
+  //   this.filteredProducts$,
+  //   this.currentPage$,
+  //   this.pageSizeAction$
+  // ])
   //   .pipe(
-  //     switchMap(criteria =>
+  //     switchMap(([filteredProducts, pageNumber, pageSize]) =>
   //       this.http.get(this.productsUrl, {
   //         params:
   //         {
-  //           limit: criteria.pageSize.toString(),
-  //           page: criteria.pageNumber.toString()
+  //           limit: pageSize.toString(),
+  //           page: pageNumber.toString()
   //         }
   //       }
   //       )
@@ -112,13 +124,15 @@ export class ProductService {
   // Filter was changed
   changeFilter(filter: string): void {
     this.filterSubject.next(filter);
+    // When the filtere changes, reset the page number.
+    this.pageNumberSubject.next(0);
   }
 
-  // Filter was changed
+  // Page size was changed
   changePageSize(size: number): void {
     this.pageSizeSubject.next(size);
-    // When the page size changes, reset the page number to 0.
-    //@@@
+    // When the page size changes, reset the page number.
+    this.pageNumberSubject.next(0);
   }
 
   // Selected product was changed
@@ -127,6 +141,7 @@ export class ProductService {
   }
 
   // Increment/decrement the current page
+  // Pass 0 to re-initialize the page
   incrementPage(amount: number) {
     this.pageNumberSubject.next(amount);
   }

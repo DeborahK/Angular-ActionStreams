@@ -86,12 +86,11 @@ export class ProductService {
 
   // If the paging can be done on the server, it would look more like this
   // products$ = combineLatest([
-  //   this.filteredProducts$,
   //   this.currentPage$,
   //   this.pageSizeAction$
   // ])
   //   .pipe(
-  //     switchMap(([filteredProducts, pageNumber, pageSize]) =>
+  //     switchMap(([pageNumber, pageSize]) =>
   //       this.http.get(this.productsUrl, {
   //         params:
   //         {
@@ -124,7 +123,7 @@ export class ProductService {
   // Filter was changed
   changeFilter(filter: string): void {
     this.filterSubject.next(filter);
-    // When the filtere changes, reset the page number.
+    // When the filter changes, reset the page number.
     this.pageNumberSubject.next(0);
   }
 

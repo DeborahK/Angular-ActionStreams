@@ -26,6 +26,14 @@ export class ProductListComponent {
   pageSize$ = this.productService.pageSizeAction$;
   currentPage$ = this.productService.currentPage$;
 
+  // // Arrow key event
+  // arrowRight$ = fromEvent(document, 'keydown')
+  //   .pipe(
+  //     tap(e => console.log(e)),
+  //     filter((e: KeyboardEvent) => e.key === 'ArrowRight'),
+  //     tap((e: KeyboardEvent) => this.setPage(1))
+  //   );
+
   // Totals
   totalResults$ = this.productService.totalResults$;
   totalPages$ = this.productService.totalPages$;

@@ -124,14 +124,14 @@ export class ProductService {
   changeFilter(filter: string): void {
     this.filterSubject.next(filter);
     // When the filter changes, reset the page number.
-    this.pageNumberSubject.next(0);
+    this.incrementPage(0);
   }
 
   // Page size was changed
   changePageSize(size: number): void {
     this.pageSizeSubject.next(size);
     // When the page size changes, reset the page number.
-    this.pageNumberSubject.next(0);
+    this.incrementPage(0);
   }
 
   // Selected product was changed

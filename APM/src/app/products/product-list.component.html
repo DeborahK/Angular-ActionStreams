@@ -14,10 +14,10 @@
       <div class="col-md-3">Page: {{ vm.currentPage}} of {{vm.totalPages}}
         <button class="btn btn-light"
                 (click)="setPage(-1)"
-                [disabled]="vm.disablePrevious">Prev</button>
+                [disabled]="disablePrevious$ | async">Prev</button>
         <button class="btn btn-light"
                 (click)="setPage(1)"
-                [disabled]="vm.disableNext">Next</button>
+                [disabled]="disableNext$ | async">Next</button>
       </div>
       <div class="col-md-3">Show Results:
         <button class="btn btn-light"

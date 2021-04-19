@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 
-import { EMPTY, combineLatest, Subject } from 'rxjs';
+import { EMPTY, combineLatest, Subject, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { ProductService } from './product.service';
@@ -39,17 +39,18 @@ export class ProductListComponent {
   totalPages$ = this.productService.totalPages$;
 
   // Whether to disable the next/prev
-  disablePrevious$ = this.currentPage$
+  disablePrevious$: Observable<boolean> = this.currentPage$
     .pipe(
       map(pageNumber => pageNumber === 1)
-    )
+    );
+
   // Whether to disable the next/prev
-  disableNext$ = combineLatest([
+  disableNext$: Observable<boolean> = combineLatest([
     this.currentPage$,
     this.totalPages$
   ]).pipe(
     map(([currentPage, totalPages]) => currentPage === totalPages)
-  )
+  );
 
   // Products adjusted as per the criteria
   products$ = this.productService.products$
@@ -59,24 +60,19 @@ export class ProductListComponent {
         return EMPTY;
       }));
 
-  // Combine all of the streams for the view
+  // Combine the streams for the view
+  // TODO: Look into why this won't compile if the boolean streams are added here
   vm$ = combineLatest([
     this.filter$,
     this.pageSize$,
     this.currentPage$,
     this.totalResults$,
     this.totalPages$,
-    this.disableNext$,
-    this.disablePrevious$,
     this.products$
   ]).pipe(
-    map(([filter, pageSize, currentPage,
-      totalResults, totalPages,
-      disableNext, disablePrevious, products]:
-      [string, number, number, number, number, boolean, boolean, Product[]]) => ({
-        filter, pageSize, currentPage,
-        totalResults, totalPages,
-        disableNext, disablePrevious, products
+    map(([filter, pageSize, currentPage, totalResults, totalPages, products]:
+      [string, number, number, number, number, Product[]]) => ({
+        filter, pageSize, currentPage, totalResults, totalPages, products
       }))
   );
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { combineLatest, BehaviorSubject, throwError, EMPTY } from 'rxjs';
+import { combineLatest, BehaviorSubject, throwError, EMPTY, Observable } from 'rxjs';
 import { catchError, tap, map, switchMap, filter, shareReplay, scan } from 'rxjs/operators';
 
 import { Product } from './product';
@@ -37,8 +37,8 @@ export class ProductService {
     this.filterAction$])
     .pipe(
       // Perform the filtering
-      map(([products, filter]) =>
-        this.performFilter(products, filter))
+      map(([products, filterBy]) =>
+        this.performFilter(products, filterBy))
     );
 
   // Total results
@@ -55,7 +55,7 @@ export class ProductService {
     .pipe(
       map(([total, pageSize]) =>
         Math.ceil(total / pageSize))
-    )
+    );
 
   // Current page
   // Emitting 0 reinitializes the page count
@@ -121,8 +121,8 @@ export class ProductService {
   constructor(private http: HttpClient) { }
 
   // Filter was changed
-  changeFilter(filter: string): void {
-    this.filterSubject.next(filter);
+  changeFilter(filterBy: string): void {
+    this.filterSubject.next(filterBy);
     // When the filter changes, reset the page number.
     this.incrementPage(0);
   }
@@ -141,17 +141,17 @@ export class ProductService {
 
   // Increment/decrement the current page
   // Pass 0 to re-initialize the page
-  incrementPage(amount: number) {
+  incrementPage(amount: number): void {
     this.pageNumberSubject.next(amount);
   }
 
-  performFilter(products: Product[], filterBy: string) {
+  performFilter(products: Product[], filterBy: string): Product[] {
     filterBy = filterBy.toLocaleLowerCase();
     return products.filter((product: Product) =>
       product.productName.toLocaleLowerCase().indexOf(filterBy) !== -1);
   }
 
-  private handleError(err: any) {
+  private handleError(err: any): Observable<never> {
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console
     let errorMessage: string;

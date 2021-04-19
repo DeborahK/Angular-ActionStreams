@@ -4,7 +4,7 @@ import { Product } from './product';
 
 export class ProductData implements InMemoryDbService {
 
-  createDb() {    
+  createDb(): { products: Product[] } {
     // Used to retrieve individual items
     const products: Product[] = [
       {
@@ -133,6 +133,6 @@ export class ProductData implements InMemoryDbService {
       }
     ];
 
-    return {products};
+    return { products };
   }
 }

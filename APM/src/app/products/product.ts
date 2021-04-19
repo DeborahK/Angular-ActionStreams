@@ -8,7 +8,7 @@ export interface Product {
   releaseDate: string;
   price: number;
   cost: number;
-  profit?: number,
+  profit?: number;
   description: string;
   starRating: number;
   imageUrl: string;

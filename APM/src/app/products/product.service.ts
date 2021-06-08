@@ -14,13 +14,13 @@ export class ProductService {
   pageSizes = [2, 3, 5];
 
   // Filter/paging criteria
-  filterSubject = new BehaviorSubject<string>('');
+  private filterSubject = new BehaviorSubject<string>('');
   filterAction$ = this.filterSubject.asObservable();
 
-  pageSizeSubject = new BehaviorSubject<number>(this.pageSizes[0]);
+  private pageSizeSubject = new BehaviorSubject<number>(this.pageSizes[0]);
   pageSizeAction$ = this.pageSizeSubject.asObservable();
 
-  pageNumberSubject = new BehaviorSubject<number>(1);
+  private pageNumberSubject = new BehaviorSubject<number>(1);
 
   // List of products
   allProducts$ = this.http.get<Product[]>(this.productsUrl)
